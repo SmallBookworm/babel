@@ -80,7 +80,11 @@ function _evaluate(path, state) {
     return evaluateCached(exprs[exprs.length - 1], state);
   }
 
-  if (path.isStringLiteral() || path.isNumericLiteral() || path.isBooleanLiteral()) {
+  if (
+    path.isStringLiteral() ||
+    path.isNumericLiteral() ||
+    path.isBooleanLiteral()
+  ) {
     return node.value;
   }
 
@@ -120,12 +124,16 @@ function _evaluate(path, state) {
     }
   }
 
-  if (path.isExpressionWrapper()) { // TypeCastExpression, ExpressionStatement etc
+  if (path.isExpressionWrapper()) {
+    // TypeCastExpression, ExpressionStatement etc
     return evaluateCached(path.get("expression"), state);
   }
 
   // "foo".length
-  if (path.isMemberExpression() && !path.parentPath.isCallExpression({ callee: node })) {
+  if (
+    path.isMemberExpression() &&
+    !path.parentPath.isCallExpression({ callee: node })
+  ) {
     const property = path.get("property");
     const object = path.get("object");
 
@@ -176,18 +184,26 @@ function _evaluate(path, state) {
     }
 
     const argument = path.get("argument");
-    if (node.operator === "typeof" && (argument.isFunction() || argument.isClass())) {
+    if (
+      node.operator === "typeof" &&
+      (argument.isFunction() || argument.isClass())
+    ) {
       return "function";
     }
 
     const arg = evaluateCached(argument, state);
     if (!state.confident) return;
     switch (node.operator) {
-      case "!": return !arg;
-      case "+": return +arg;
-      case "-": return -arg;
-      case "~": return ~arg;
-      case "typeof": return typeof arg;
+      case "!":
+        return !arg;
+      case "+":
+        return +arg;
+      case "-":
+        return -arg;
+      case "~":
+        return ~arg;
+      case "typeof":
+        return typeof arg;
     }
   }
 
@@ -278,26 +294,46 @@ function _evaluate(path, state) {
     if (!state.confident) return;
 
     switch (node.operator) {
-      case "-": return left - right;
-      case "+": return left + right;
-      case "/": return left / right;
-      case "*": return left * right;
-      case "%": return left % right;
-      case "**": return left ** right;
-      case "<": return left < right;
-      case ">": return left > right;
-      case "<=": return left <= right;
-      case ">=": return left >= right;
-      case "==": return left == right; // eslint-disable-line eqeqeq
-      case "!=": return left != right;
-      case "===": return left === right;
-      case "!==": return left !== right;
-      case "|": return left | right;
-      case "&": return left & right;
-      case "^": return left ^ right;
-      case "<<": return left << right;
-      case ">>": return left >> right;
-      case ">>>": return left >>> right;
+      case "-":
+        return left - right;
+      case "+":
+        return left + right;
+      case "/":
+        return left / right;
+      case "*":
+        return left * right;
+      case "%":
+        return left % right;
+      case "**":
+        return left ** right;
+      case "<":
+        return left < right;
+      case ">":
+        return left > right;
+      case "<=":
+        return left <= right;
+      case ">=":
+        return left >= right;
+      case "==":
+        return left == right; // eslint-disable-line eqeqeq
+      case "!=":
+        return left != right;
+      case "===":
+        return left === right;
+      case "!==":
+        return left !== right;
+      case "|":
+        return left | right;
+      case "&":
+        return left & right;
+      case "^":
+        return left ^ right;
+      case "<<":
+        return left << right;
+      case ">>":
+        return left >> right;
+      case ">>>":
+        return left >>> right;
     }
   }
 
@@ -308,7 +344,8 @@ function _evaluate(path, state) {
 
     // Number(1);
     if (
-      callee.isIdentifier() && !path.scope.getBinding(callee.node.name, true) &&
+      callee.isIdentifier() &&
+      !path.scope.getBinding(callee.node.name, true) &&
       VALID_CALLEES.indexOf(callee.node.name) >= 0
     ) {
       func = global[node.callee.name];
@@ -320,7 +357,8 @@ function _evaluate(path, state) {
 
       // Math.min(1, 2)
       if (
-        object.isIdentifier() && property.isIdentifier() &&
+        object.isIdentifier() &&
+        property.isIdentifier() &&
         VALID_CALLEES.indexOf(object.node.name) >= 0 &&
         INVALID_METHODS.indexOf(property.node.name) < 0
       ) {
@@ -339,7 +377,7 @@ function _evaluate(path, state) {
     }
 
     if (func) {
-      const args = path.get("arguments").map((arg) => evaluateCached(arg, state));
+      const args = path.get("arguments").map(arg => evaluateCached(arg, state));
       if (!state.confident) return;
 
       return func.apply(context, args);
@@ -364,11 +402,11 @@ function _evaluate(path, state) {
  *
  */
 
-export function evaluate(): { confident: boolean; value: any } {
+export function evaluate(): { confident: boolean, value: any } {
   const state = {
     confident: true,
     deoptPath: null,
-    seen: new Map,
+    seen: new Map(),
   };
   let value = evaluateCached(this, state);
   if (!state.confident) value = undefined;
